@@ -4,12 +4,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+#include <termios.h>
 #include <strings.h>
 
 // Enum for resistor colors
 typedef enum COLORS {
     BLACK, BROWN, RED, ORANGE, YELLOW, GREEN, BLUE,
-    VIOLET, GRAY, WHITE, GOLD, SILVER, COLOR_COUNT
+    VIOLET, GRAY, WHITE, GOLD, SILVER, NO_BAND
 } colors_t;
 
 // Struct to hold resistor band values
@@ -54,7 +56,8 @@ static const double tolerance[] = {
     [VIOLET]    = 1E-1,   //? +/- .1%
     [GRAY]      = 5E-2,   //? +/- .05%
     [GOLD]      = 5E0,    //? +/- 5%
-    [SILVER]    = 1E1     //? +/- 10%
+    [SILVER]    = 1E1,    //? +/- 10%
+    [NO_BAND]   = 2E1     //? +/- 20%
 };
 
 static const double multipliers[] = {
@@ -108,7 +111,8 @@ static const colormap_t tolerance_map[] = {
     {"GRAY", GRAY},
     {"GREY", GRAY},  // Alias for GRAY
     {"GOLD", GOLD},
-    {"SILVER", SILVER}
+    {"SILVER", SILVER},
+    {NULL, NO_BAND}
 };
 
 static const colormap_t multiplier_map[] = {
@@ -131,6 +135,7 @@ static const colormap_t multiplier_map[] = {
 #define MEGA                    1E6
 #define GIGA                    1E9
 #define BUFSIZE                 64
+#define clr_scr()               printf("\033c");
 #define PPM_MAP_SIZE            (sizeof(ppm_map) / sizeof(colormap_t))
 #define BAND_MAP_SIZE           (sizeof(band_map) / sizeof(colormap_t))
 #define TOLERANCE_MAP_SIZE      (sizeof(tolerance_map) / sizeof(colormap_t))
@@ -139,7 +144,10 @@ static const colormap_t multiplier_map[] = {
 char *input(const char *);
 char *format_with_suffix(double, double);
 
+int    cgetch(void);
+int    get_band_number(void);
 int    get_ppm_value(colors_t);
+char   *get_band_color(const char *);
 double get_tolerance_value(colors_t);
 double get_multiplier_value(colors_t);
 

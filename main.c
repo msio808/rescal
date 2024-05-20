@@ -1,17 +1,7 @@
 #include "main.h"
 
 int main() {
-    int num = 0;
-    do
-    {
-        printf("\033c");
-        char *s = input("\t\t <== RESISTOR COLOR CODE INTERPRETER ==>\n"
-                    "\t[#] Resistor must have atleast 4 bands and atmost 6 bands!...\n"
-                    "\t[#] NOTE: TCR = Temperature Coefficient Resistance (ppm/°C)!...\n"
-                    "\t[+] Enter the number of bands : ");
-        num = atoi(s);
-        free(s);
-    } while (num < 4 || num > 6);
+    int num = get_band_number();
 
     res_t *resistor = (res_t *)calloc(sizeof(res_t), 2);
     if (NULL == resistor) {
@@ -21,22 +11,28 @@ int main() {
 
     int mul = (num > 4 ? 100 : 10);
 
-    resistor->bands.band_1 = decode_band(input("\n\t[?] Color of 1st band : "));
+    resistor->bands.band_1 = decode_band(
+            get_band_color("\n\t[?] Color of 1st band : "));
     resistor->bands.band_1 *= mul;
     mul /= 10;
 
-    resistor->bands.band_2 = decode_band(input("\t[?] Color of 2nd band : "));
+    resistor->bands.band_2 = decode_band(
+            get_band_color("\t[?] Color of 2nd band : "));
     resistor->bands.band_2 *= mul;
     mul /= 10;
 
     if (num > 4) {
-        resistor->bands.band_3 = decode_band(input("\t[?] Color of 3rd band : "));
+        resistor->bands.band_3 = decode_band(
+                get_band_color("\t[?] Color of 3rd band : "));
         resistor->bands.band_3 *= mul;
         mul /=10;
     }
 
-    resistor->multiplier = get_multiplier_value(decode_multiplier(input("\n\t[?] Color of multiplier : ")));
-    resistor->tolerance  = get_tolerance_value(decode_tolerance(input("\t[?] Color of tolerance : ")));
+    resistor->multiplier = get_multiplier_value(
+            decode_multiplier(input("\n\t[?] Color of multiplier : ")));
+    
+    resistor->tolerance  = get_tolerance_value(
+            decode_tolerance(input("\t[?] Color of tolerance : ")));
 
     if (num == 6)
         resistor->ppm = get_ppm_value(decode_ppm(input("\t[?] Color of TCR : ")));
@@ -49,7 +45,7 @@ int main() {
     printf("\n\t[$] RESISTOR VALUE : %s", resistor->resistor_value);
     if (num == 6)
         printf(" %iPPM/°C", resistor->ppm);
-    printf("\n");
+    printf("\n\n");
 
     free(resistor->resistor_value);
     free(resistor);
@@ -65,6 +61,41 @@ double get_tolerance_value(colors_t color) {
 }
 double get_multiplier_value(colors_t color) {
     return *(multipliers + color);
+}
+
+int get_band_number(void) {
+    int num;
+    do {
+        clr_scr();
+        char *s = input("\t\t <== RESISTOR COLOR CODE INTERPRETER ==>\n"
+                    "\t[#] Resistor must have atleast 2 bands and atmost 6 bands!...\n"
+                    "\t[#] NOTE: TCR = Temperature Coefficient Resistance (ppm/°C)!...\n"
+                    "\t[+] Enter the number of bands : ");
+        num = atoi(s);
+        free(s);
+    } while (num < 4 || num > 6);
+    return num;
+}
+
+char *get_band_color(const char *prompt) {
+    int flag = -1;
+    char *color;
+    do {
+        color = input(prompt);
+        for (size_t i = 0; i < MULTIPLIER_MAP_SIZE; ++i) {
+            if (strcasecmp(color, (multiplier_map + i)->name) == 0) {
+                flag = 0;
+                break;
+            }
+        }
+        if (-1 == flag) {
+            fprintf(stderr, "\t[!] Error: Enter a valid color!...\n");
+            free(color);
+            cgetch();
+        }
+        
+    } while (flag == -1);
+    return color;
 }
 
 int decode_ppm(char *color) {
@@ -100,7 +131,7 @@ double decode_tolerance(char *color) {
         }
     }
     free(color);
-    return -1.0;  //* Color not found
+    return NO_BAND;  //* Color not found
 }
 
 double decode_multiplier(char *color) {
@@ -134,6 +165,10 @@ char *input(const char *prompt) {
             *(array + (len - 1)) = '\0'; //* Remove trailing newline character, if present
             len -= 1;
         }
+        else {
+            free(array);
+            return NULL;
+        }
     }
     return array; //* Return dynamically allocated string
 }
@@ -159,4 +194,23 @@ char *format_with_suffix(double num, double tol) {
         snprintf(result, SIZE, "%.2fΩhms ±%.2f%%", num, tol);              //* Format for less than a thousand
 
     return result;
+}
+
+/* 
+    TODO : getch function for unix system.
+?   Gets a character from the user without echoing to the terminal.
+*/
+int cgetch(void) {
+    struct termios old_tio, new_tio;
+    int c;
+
+    tcgetattr(STDIN_FILENO, &old_tio);
+    new_tio = old_tio;
+    new_tio.c_lflag &= ~(ICANON | ECHO);
+    tcsetattr(STDIN_FILENO, TCSANOW, &new_tio);
+
+    c = getchar();
+
+    tcsetattr(STDIN_FILENO, TCSANOW, &old_tio);
+    return c;
 }
