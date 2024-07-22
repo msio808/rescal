@@ -1,5 +1,6 @@
-#ifndef RESCAL_MAIN_H
-#define RESCAL_MAIN_H
+#ifndef RESCAL_SRC_SRC_H
+#define RESCAL_SRC_SRC_H
+#pragma once
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -105,6 +106,8 @@ static const colormap_t band_map[] = {
 static const colormap_t tolerance_map[] = {
     {"BROWN", BROWN},
     {"RED", RED},
+    {"ORANGE", ORANGE},
+    {"YELLOW", YELLOW},
     {"GREEN", GREEN},
     {"BLUE", BLUE},
     {"VIOLET", VIOLET},
@@ -134,8 +137,11 @@ static const colormap_t multiplier_map[] = {
 #define KILO                    1E3
 #define MEGA                    1E6
 #define GIGA                    1E9
-#define BUFSIZE                 64
-#define clr_scr()               printf("\033c");
+
+#define BUFSIZE                 0x00000040
+#define MIN_BAND_COUNT          0x00000004
+#define MAX_BAND_COUNT          0x00000006
+
 #define PPM_MAP_SIZE            (sizeof(ppm_map) / sizeof(colormap_t))
 #define BAND_MAP_SIZE           (sizeof(band_map) / sizeof(colormap_t))
 #define TOLERANCE_MAP_SIZE      (sizeof(tolerance_map) / sizeof(colormap_t))
@@ -145,6 +151,7 @@ char *input(const char *);
 char *format_with_suffix(double, double);
 
 int    cgetch(void);
+void   clr_scr(void);
 int    get_band_number(void);
 int    get_ppm_value(colors_t);
 char   *get_band_color(const char *);
@@ -156,4 +163,4 @@ int    decode_band(char *);
 double decode_tolerance(char *);
 double decode_multiplier(char *);
 
-#endif // RESCAL_MAIN_H
+#endif // RESCAL_SRC_SRC_H

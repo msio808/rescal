@@ -1,4 +1,4 @@
-#include "main.h"
+#include "src.h"
 
 int main() {
     int num = get_band_number();
@@ -68,12 +68,12 @@ int get_band_number(void) {
     do {
         clr_scr();
         char *s = input("\t\t <== RESISTOR COLOR CODE INTERPRETER ==>\n"
-                    "\t[#] Resistor must have atleast 2 bands and atmost 6 bands!...\n"
+                    "\t[#] Resistor must have atleast 4 bands and atmost 6 bands!...\n"
                     "\t[#] NOTE: TCR = Temperature Coefficient Resistance (ppm/°C)!...\n"
                     "\t[+] Enter the number of bands : ");
         num = atoi(s);
         free(s);
-    } while (num < 4 || num > 6);
+    } while (num < MIN_BAND_COUNT || num > MAX_BAND_COUNT);
     return num;
 }
 
@@ -147,11 +147,10 @@ double decode_multiplier(char *color) {
 
 char *input(const char *prompt) {
     if (prompt) {
-        fputs(prompt, stdout); //* Display the provided prompt.
+        fputs(prompt, stdout);
         fflush(stdout);
     }
 
-    //* Declare an array variable and allocate memory to it
     char *array = (char *) calloc(BUFSIZE, sizeof(char));
     if (NULL == array) {
         fprintf(stderr, "Error: Memory allocation to 'array' failed!...");
@@ -184,16 +183,21 @@ char *format_with_suffix(double num, double tol) {
     }
 
     if (num >= GIGA)
-        snprintf(result, SIZE, "%.2fGΩhms ±%.2f%%", num / GIGA, tol);    //* Format for billions
+        snprintf(result, SIZE, "%.2fGΩhms ±%.2f%%", num / GIGA, tol);
     else if (num >= MEGA)
-        snprintf(result, SIZE, "%.2fMΩhms ±%.2f%%", num / MEGA, tol);    //* Format for millions
+        snprintf(result, SIZE, "%.2fMΩhms ±%.2f%%", num / MEGA, tol);
     else if (num >= KILO)
         
-        snprintf(result, SIZE, "%.2fKΩhms ±%.2f%%", num / KILO, tol);    //* Format for thousands
+        snprintf(result, SIZE, "%.2fKΩhms ±%.2f%%", num / KILO, tol);
     else
-        snprintf(result, SIZE, "%.2fΩhms ±%.2f%%", num, tol);              //* Format for less than a thousand
+        snprintf(result, SIZE, "%.2fΩhms ±%.2f%%", num, tol);
 
     return result;
+}
+
+
+void clr_scr(void) {
+    printf("\033c");
 }
 
 /* 
