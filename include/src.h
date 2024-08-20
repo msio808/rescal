@@ -1,18 +1,19 @@
-#ifndef RESCAL_SRC_SRC_H
-#define RESCAL_SRC_SRC_H
+#ifndef SRC_H
+#define SRC_H
 #pragma once
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdarg.h>
 #include <unistd.h>
 #include <termios.h>
 #include <strings.h>
 
 // Enum for resistor colors
 typedef enum COLORS {
-    BLACK, BROWN, RED, ORANGE, YELLOW, GREEN, BLUE,
-    VIOLET, GRAY, WHITE, GOLD, SILVER, NO_BAND
+    BLACK, BROWN, RED, ORANGE, YELLOW, GREEN,
+    BLUE, VIOLET, GRAY, WHITE, GOLD, SILVER
 } colors_t;
 
 // Struct to hold resistor band values
@@ -26,6 +27,7 @@ typedef struct COLORMAP{
     const char* name;
     colors_t color;
 } colormap_t;
+
 // Struct to hold resistor information including bands and tolerance
 typedef struct RESISTOR {
     RB_t      bands;
@@ -34,6 +36,20 @@ typedef struct RESISTOR {
     double    tolerance; // Tolerance band
     double    multiplier;  // Multiplier band
 } res_t;
+
+
+static const int band[] = {
+    [BLACK]     = BLACK,
+    [BROWN]     = BROWN,
+    [RED]       = RED,
+    [ORANGE]    = ORANGE,
+    [YELLOW]    = YELLOW,
+    [GREEN]     = GREEN,
+    [BLUE]      = BLUE,
+    [VIOLET]    = VIOLET,
+    [GRAY]      = GREEN,
+    [WHITE]     = WHITE,
+};
 
 static const int ppm[] = {
     [BLACK]     = 250,
@@ -44,7 +60,7 @@ static const int ppm[] = {
     [GREEN]     = 20,    //? 20 PPM/°C
     [BLUE]      = 10,   //? 10 PPM/°C
     [VIOLET]    = 5,    //? 5 PPM/°C
-    [GRAY]      = 1     //? 1 PPM/°C
+    [GRAY]      = 1,    //? 1 PPM/°C
 };
 
 static const double tolerance[] = {
@@ -58,7 +74,6 @@ static const double tolerance[] = {
     [GRAY]      = 5E-2,   //? +/- .05%
     [GOLD]      = 5E0,    //? +/- 5%
     [SILVER]    = 1E1,    //? +/- 10%
-    [NO_BAND]   = 2E1     //? +/- 20%
 };
 
 static const double multipliers[] = {
@@ -86,7 +101,7 @@ static const colormap_t ppm_map[] = {
     {"BLUE", BLUE},
     {"VIOLET", VIOLET},
     {"GRAY", GRAY},
-    {"GREY", GRAY}
+    {"GREY", GRAY},
 };
 
 static const colormap_t band_map[] = {
@@ -115,7 +130,6 @@ static const colormap_t tolerance_map[] = {
     {"GREY", GRAY},  // Alias for GRAY
     {"GOLD", GOLD},
     {"SILVER", SILVER},
-    {NULL, NO_BAND}
 };
 
 static const colormap_t multiplier_map[] = {
@@ -138,10 +152,6 @@ static const colormap_t multiplier_map[] = {
 #define MEGA                    1E6
 #define GIGA                    1E9
 
-#define BUFSIZE                 0x00000040
-#define MIN_BAND_COUNT          0x00000004
-#define MAX_BAND_COUNT          0x00000006
-
 #define PPM_MAP_SIZE            (sizeof(ppm_map) / sizeof(colormap_t))
 #define BAND_MAP_SIZE           (sizeof(band_map) / sizeof(colormap_t))
 #define TOLERANCE_MAP_SIZE      (sizeof(tolerance_map) / sizeof(colormap_t))
@@ -153,14 +163,10 @@ char *format_with_suffix(double, double);
 int    cgetch(void);
 void   clr_scr(void);
 int    get_band_number(void);
-int    get_ppm_value(colors_t);
-char   *get_band_color(const char *);
-double get_tolerance_value(colors_t);
-double get_multiplier_value(colors_t);
 
 int    decode_ppm(char *);
 int    decode_band(char *);
 double decode_tolerance(char *);
 double decode_multiplier(char *);
 
-#endif // RESCAL_SRC_SRC_H
+#endif // SRC_H
