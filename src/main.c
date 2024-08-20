@@ -1,220 +1,197 @@
-#include "src.h"
+#include "../include/src.h"
+#include "../include/helpers.h"
+
 
 int main() {
-    int num = get_band_number();
+    setup_signal_handler();
 
-    res_t *resistor = (res_t *)calloc(sizeof(res_t), 2);
+    res_t *resistor = calloc(2, sizeof(res_t));
     if (NULL == resistor) {
         fprintf(stderr, "[!] Error: Failed to allocate memory to 'resistor' struct!...\n");
         return EXIT_FAILURE;
     }
 
-    int mul = (num > 4 ? 100 : 10);
+    const int num = get_band_number();
 
-    resistor->bands.band_1 = decode_band(
-            get_band_color("\n\t[?] Color of 1st band : "));
-    resistor->bands.band_1 *= mul;
-    mul /= 10;
+    short check = VALUE_ERROR;
+    do {
+        print_table();
+        int mul = num > 4 ? 100 : 10;
 
-    resistor->bands.band_2 = decode_band(
-            get_band_color("\t[?] Color of 2nd band : "));
-    resistor->bands.band_2 *= mul;
-    mul /= 10;
+        memset(resistor, 0, sizeof(res_t));
 
-    if (num > 4) {
-        resistor->bands.band_3 = decode_band(
-                get_band_color("\t[?] Color of 3rd band : "));
-        resistor->bands.band_3 *= mul;
-        mul /=10;
-    }
+        resistor->bands.band_1 = decode_band(input("\n \t [?] Color of 1st band : "));
+        if (resistor->bands.band_1 == (colors_t)INVALID_BAND_COLOR) continue;
+        resistor->bands.band_1 *= mul;
+        mul /= 10;
 
-    resistor->multiplier = get_multiplier_value(
-            decode_multiplier(input("\n\t[?] Color of multiplier : ")));
-    
-    resistor->tolerance  = get_tolerance_value(
-            decode_tolerance(input("\t[?] Color of tolerance : ")));
+        resistor->bands.band_2 = decode_band(input(" \t [?] Color of 2nd band : "));
+        if (resistor->bands.band_2 == (colors_t)INVALID_BAND_COLOR) continue;
+        resistor->bands.band_2 *= mul;
+        mul /= 10;
 
-    if (num == 6)
-        resistor->ppm = get_ppm_value(decode_ppm(input("\t[?] Color of TCR : ")));
+        if (num > MIN_BAND_COUNT) {
+            resistor->bands.band_3 = decode_band(input(" \t [?] Color of 3rd band : "));
+            if (resistor->bands.band_3 == (colors_t)INVALID_BAND_COLOR) continue;
+            resistor->bands.band_3 *= mul;
+        }
 
-    double value = (resistor->bands.band_1 + resistor->bands.band_2 + resistor->bands.band_3);
-    value *= resistor->multiplier;
+        resistor->multiplier = decode_multiplier(input("\n \t [?] Color of multiplier : "));
+        if (resistor->multiplier == (double)INVALID_BAND_COLOR || resistor->multiplier == (double)VALUE_ERROR) continue;
 
-    resistor->resistor_value = format_with_suffix(value, resistor->tolerance);
+        resistor->tolerance  = decode_tolerance(input(" \t [?] Color of tolerance : "));
+        if (resistor->tolerance == (double)INVALID_BAND_COLOR) continue;
 
-    printf("\n\t[$] RESISTOR VALUE : %s", resistor->resistor_value);
-    if (num == 6)
-        printf(" %iPPM/°C", resistor->ppm);
-    printf("\n\n");
+        if (num == MAX_BAND_COUNT) {
+            resistor->ppm = decode_ppm(input(" \t [?] Color of TCR/PPM : "));
+            if (resistor->ppm == (double)INVALID_BAND_COLOR) continue;
+        }
+
+        double value = resistor->bands.band_1 + resistor->bands.band_2 + resistor->bands.band_3;
+        value *= resistor->multiplier;
+
+        resistor->resistor_value = format_with_suffix(value, resistor->tolerance);
+
+        cprintf(BOLD, NULL, "\n \t [$] RESISTOR VALUE : %s", resistor->resistor_value);
+        if (num == 6) {
+            cprintf(BOLD, NULL, " %iPPM/°C", resistor->ppm);
+        }
+
+        check = VALUE_SUCCESS;
+    } while (check == VALUE_ERROR);
 
     free(resistor->resistor_value);
     free(resistor);
 
+    print("\n\n");
     return EXIT_SUCCESS;
 }
 
-int get_ppm_value(colors_t color) {
-    return *(ppm + color);
-}
-double get_tolerance_value(colors_t color) {
-    return *(tolerance + color);
-}
-double get_multiplier_value(colors_t color) {
-    return *(multipliers + color);
-}
 
+/**
+ * @brief Function to get the total number of bands on a resistor
+ *
+ * @return The number of bands on the resistor
+ */
 int get_band_number(void) {
     int num;
     do {
-        clr_scr();
-        char *s = input("\t\t <== RESISTOR COLOR CODE INTERPRETER ==>\n"
-                    "\t[#] Resistor must have atleast 4 bands and atmost 6 bands!...\n"
-                    "\t[#] NOTE: TCR = Temperature Coefficient Resistance (ppm/°C)!...\n"
-                    "\t[+] Enter the number of bands : ");
+        print_table();
+        cprintf(BOLD, NULL, "\n \t \t <== RESISTOR COLOR CODE INTERPRETER ==>"
+                    "\n\t [#] Resistor must have atleast 4 bands and atmost 6 bands!..."
+                    "\n\t [#] NOTE: TCR = Temperature Coefficient Resistance (ppm/°C)!..."
+                    "\n\t [+] Enter the number of bands : ");
+        char *s = input(NULL);
         num = atoi(s);
         free(s);
     } while (num < MIN_BAND_COUNT || num > MAX_BAND_COUNT);
     return num;
 }
 
-char *get_band_color(const char *prompt) {
-    int flag = -1;
-    char *color;
-    do {
-        color = input(prompt);
-        for (size_t i = 0; i < MULTIPLIER_MAP_SIZE; ++i) {
-            if (strcasecmp(color, (multiplier_map + i)->name) == 0) {
-                flag = 0;
-                break;
-            }
-        }
-        if (-1 == flag) {
-            fprintf(stderr, "\t[!] Error: Enter a valid color!...\n");
-            free(color);
-            cgetch();
-        }
-        
-    } while (flag == -1);
-    return color;
-}
 
-int decode_ppm(char *color) {
-    for (size_t i = 0; i < PPM_MAP_SIZE; ++i) {
-        if (strcasecmp(color, (ppm_map + i)->name) == 0) {
-            int val = (ppm_map + i)->color;
-            free(color);
-            return val;
-        }
+/**
+ * @brief Function to decode the BAND color of a given resistor
+ *
+ * @param bandColor Ths color of the band on the resistor
+ * @return the BAND value of the color
+ */
+int decode_band(char *bandColor) {
+    if (bandColor == NULL) {
+        printf("\n\t [!] ERROR : Failed to read band color!...");
+        cgetch();
+        return INVALID_BAND_COLOR;
     }
-    free(color);
-    return -1;  //* Color not found
-}
 
-int decode_band(char *color) {
     for (size_t i = 0; i < BAND_MAP_SIZE; ++i) {
-        if (strcasecmp(color, (band_map + i)->name) == 0) {
-            int val = (band_map + i)->color;
-            free(color);
-            return val;
+        if (strcasecmp(bandColor, (band_map + i)->name) == 0) {
+            free(bandColor);
+            return *(band + (band_map + i)->color);
         }
     }
-    free(color);
-    return -1;  //* Color not found
+    free(bandColor);
+
+    printf("\n\t [!] Please enter a valid band color!...");
+    cgetch();
+    return INVALID_BAND_COLOR;
 }
 
-double decode_tolerance(char *color) {
+
+/**
+ * @brief Function to decode the PPM color of a given resistor
+ *
+ * @param bandColor Ths color of the band on the resistor
+ * @return the PPM value of the color
+ */
+int decode_ppm(char *bandColor) {
+    if (bandColor == NULL) {
+        printf("\n\t [!] ERROR : Failed to read PPM color!...");
+        cgetch();
+        return INVALID_BAND_COLOR;
+    }
+
+    for (size_t i = 0; i < PPM_MAP_SIZE; ++i) {
+        if (strcasecmp(bandColor, (ppm_map + i)->name) == 0) {
+            free(bandColor);
+            return *(ppm + (ppm_map + i)->color);
+        }
+    }
+    free(bandColor);
+
+    printf("\n\t [!] Please enter a valid PPM color!...");
+    cgetch();
+    return INVALID_BAND_COLOR;
+}
+
+
+/**
+ * @brief Function to decode the TOLERANCE color of a given resistor
+ *
+ * @param bandColor Ths color of the band on the resistor
+ * @return the TOLERANCE value of the color
+ */
+double decode_tolerance(char *bandColor) {
+    if (bandColor == NULL) {
+        printf("\n\t [!] ERROR : Failed to read TOLERANCE color!...");
+        cgetch();
+        return INVALID_BAND_COLOR;
+    }
+
     for (size_t i = 0; i < TOLERANCE_MAP_SIZE; ++i) {
-        if (strcasecmp(color, (tolerance_map + i)->name) == 0) {
-            double val = (tolerance_map + i)->color;
-            free(color);
-            return val;
+        if (strcasecmp(bandColor, (tolerance_map + i)->name) == 0) {
+            free(bandColor);
+            return *(tolerance + (tolerance_map + i)->color);
         }
     }
-    free(color);
-    return NO_BAND;  //* Color not found
+    free(bandColor);
+
+    printf("\n\t [!] Please enter a valid TOLERANCE color!...");
+    cgetch();
+    return INVALID_BAND_COLOR;
 }
 
-double decode_multiplier(char *color) {
+
+/**
+ * @brief Function to decode the MULTIPLIER color of a given resistor
+ *
+ * @param bandColor Ths color of the band on the resistor
+ * @return the MULTIPLIER value of the color
+ */
+double decode_multiplier(char *bandColor) {
+    if (bandColor == NULL) {
+        printf("\n\t [!] ERROR : Failed to read MULTIPLIER color!...");
+        cgetch();
+        return INVALID_BAND_COLOR;
+    }
+
     for (size_t i = 0; i < MULTIPLIER_MAP_SIZE; ++i) {
-        if (strcasecmp(color, (multiplier_map + i)->name) == 0) {
-            free(color);
-            return (multiplier_map + i)->color;
+        if (strcasecmp(bandColor, (multiplier_map + i)->name) == 0) {
+            free(bandColor);
+            return *(multiplier + (multiplier_map + i)->color);
         }
     }
-    free(color);
-    return -1.0;  //* Color not found
-}
+    free(bandColor);
 
-char *input(const char *prompt) {
-    if (prompt) {
-        fputs(prompt, stdout);
-        fflush(stdout);
-    }
-
-    char *array = (char *) calloc(BUFSIZE, sizeof(char));
-    if (NULL == array) {
-        fprintf(stderr, "Error: Memory allocation to 'array' failed!...");
-        return NULL;
-    }
-    
-    memset(array, 0, BUFSIZE * sizeof(char));
-    if (NULL != fgets(array, BUFSIZE, stdin)) {
-        size_t len = strlen(array);
-        if ((len > 1) && *(array + (len - 1)) == '\n') {
-            *(array + (len - 1)) = '\0'; //* Remove trailing newline character, if present
-            len -= 1;
-        }
-        else {
-            free(array);
-            return NULL;
-        }
-    }
-    return array; //* Return dynamically allocated string
-}
-
-// TODO : Function to convert number to a formatted string with suffix
-char *format_with_suffix(double num, double tol) {
-    size_t SIZE = BUFSIZE / 2;
-    //* Allocate memory the resulting string
-    char *result = (char *)calloc(SIZE, sizeof(char));
-    if (NULL == result) {
-        fprintf(stderr, "Error: Memory Allocation Failed!...\n");
-        return NULL;
-    }
-
-    if (num >= GIGA)
-        snprintf(result, SIZE, "%.2fGΩhms ±%.2f%%", num / GIGA, tol);
-    else if (num >= MEGA)
-        snprintf(result, SIZE, "%.2fMΩhms ±%.2f%%", num / MEGA, tol);
-    else if (num >= KILO)
-        
-        snprintf(result, SIZE, "%.2fKΩhms ±%.2f%%", num / KILO, tol);
-    else
-        snprintf(result, SIZE, "%.2fΩhms ±%.2f%%", num, tol);
-
-    return result;
-}
-
-
-void clr_scr(void) {
-    printf("\033c");
-}
-
-/* 
-    TODO : getch function for unix system.
-?   Gets a character from the user without echoing to the terminal.
-*/
-int cgetch(void) {
-    struct termios old_tio, new_tio;
-    int c;
-
-    tcgetattr(STDIN_FILENO, &old_tio);
-    new_tio = old_tio;
-    new_tio.c_lflag &= ~(ICANON | ECHO);
-    tcsetattr(STDIN_FILENO, TCSANOW, &new_tio);
-
-    c = getchar();
-
-    tcsetattr(STDIN_FILENO, TCSANOW, &old_tio);
-    return c;
+    printf("\n\t [!] Please enter a valid MULTIPLIER color!...");
+    cgetch();
+    return INVALID_BAND_COLOR;
 }
