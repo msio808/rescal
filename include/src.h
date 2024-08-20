@@ -13,7 +13,7 @@
 // Enum for resistor colors
 typedef enum COLORS {
     BLACK, BROWN, RED, ORANGE, YELLOW, GREEN,
-    BLUE, VIOLET, GRAY, WHITE, GOLD, SILVER
+    BLUE, VIOLET, GREY, WHITE, GOLD, SILVER
 } colors_t;
 
 // Struct to hold resistor band values
@@ -47,7 +47,7 @@ static const int band[] = {
     [GREEN]     = GREEN,
     [BLUE]      = BLUE,
     [VIOLET]    = VIOLET,
-    [GRAY]      = GREEN,
+    [GREY]      = GREY,
     [WHITE]     = WHITE,
 };
 
@@ -60,7 +60,7 @@ static const int ppm[] = {
     [GREEN]     = 20,    //? 20 PPM/°C
     [BLUE]      = 10,   //? 10 PPM/°C
     [VIOLET]    = 5,    //? 5 PPM/°C
-    [GRAY]      = 1,    //? 1 PPM/°C
+    [GREY]      = 1,    //? 1 PPM/°C
 };
 
 static const double tolerance[] = {
@@ -71,12 +71,12 @@ static const double tolerance[] = {
     [GREEN]     = 5E-1,   //? +/- .5%
     [BLUE]      = 25E-2,  //? +/- .25%
     [VIOLET]    = 1E-1,   //? +/- .1%
-    [GRAY]      = 5E-2,   //? +/- .05%
+    [GREY]      = 5E-2,   //? +/- .05%
     [GOLD]      = 5E0,    //? +/- 5%
     [SILVER]    = 1E1,    //? +/- 10%
 };
 
-static const double multipliers[] = {
+static const double multiplier[] = {
     [BLACK]     = 1E0,  //? 1Ω
     [BROWN]     = 1E1,  //? 10Ω
     [RED]       = 1E2,  //? 100Ω
@@ -85,7 +85,7 @@ static const double multipliers[] = {
     [GREEN]     = 1E5,  //? 100KΩ
     [BLUE]      = 1E6,  //? 1MΩ
     [VIOLET]    = 1E7,  //? 10MΩ
-    [GRAY]      = 1E8,  //? 100MΩ
+    [GREY]      = 1E8,  //? 100MΩ
     [WHITE]     = 1E9,  //? 1GΩ
     [GOLD]      = 1E-1, //? 100mΩ
     [SILVER]    = 1E-2  //? 10mΩ
@@ -100,8 +100,8 @@ static const colormap_t ppm_map[] = {
     {"GREEN", GREEN},
     {"BLUE", BLUE},
     {"VIOLET", VIOLET},
-    {"GRAY", GRAY},
-    {"GREY", GRAY},
+    {"GRAY", GREY},
+    {"GREY", GREY},  //? GREY? Alias for GRAY
 };
 
 static const colormap_t band_map[] = {
@@ -113,8 +113,8 @@ static const colormap_t band_map[] = {
     {"GREEN", GREEN},
     {"BLUE", BLUE},
     {"VIOLET", VIOLET},
-    {"GRAY", GRAY},
-    {"GREY", GRAY},  // Alias for GRAY
+    {"GRAY", GREY},
+    {"GREY", GREY},  //? GREY? Alias for GRAY
     {"WHITE", WHITE},
 };
 
@@ -126,8 +126,8 @@ static const colormap_t tolerance_map[] = {
     {"GREEN", GREEN},
     {"BLUE", BLUE},
     {"VIOLET", VIOLET},
-    {"GRAY", GRAY},
-    {"GREY", GRAY},  // Alias for GRAY
+    {"GRAY", GREY},
+    {"GREY", GREY},  //? GREY? Alias for GRAY
     {"GOLD", GOLD},
     {"SILVER", SILVER},
 };
@@ -141,8 +141,8 @@ static const colormap_t multiplier_map[] = {
     {"GREEN", GREEN},
     {"BLUE", BLUE},
     {"VIOLET", VIOLET},
-    {"GRAY", GRAY},
-    {"GREY", GRAY},  // Alias for GRAY
+    {"GRAY", GREY},
+    {"GREY", GREY},  //? GREY? Alias for GRAY
     {"WHITE", WHITE},
     {"GOLD", GOLD},
     {"SILVER", SILVER}

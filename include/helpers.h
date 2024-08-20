@@ -11,10 +11,6 @@
 #define ERROR_LOGPATH "../logs/errorlogs.log"
 
 typedef enum FLAGS {
-    //? For enabling or disabling terminal cursor
-    ENABLE       =  0x00000000,
-    DISABLE      =  0x00000001,
-
     //? For styling/formatting output texts on the terminal
     DIM          =  0x00000002,
     BOLD         =  0x00000001,
@@ -24,7 +20,6 @@ typedef enum FLAGS {
     RESET_ATTR   =  0x00000000,
 
     //?
-    NULLSTRING      = -0x00000002,
     VALUE_ERROR     = -0x00000001,
     VALUE_SUCCESS   =  0x00000000,
 
