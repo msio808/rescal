@@ -1,0 +1,6 @@
+config/cmake-build-debug
+.clang-format
+.idea
+build
+logs
+.gitignore
