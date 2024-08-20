@@ -79,7 +79,7 @@ cd rescal/config/
 <details>
 <summary>The code below might help</summary>
 
-```c
+```c++
 #include <ctype.h>
 #include <stdint.h>
 
