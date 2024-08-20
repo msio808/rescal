@@ -79,15 +79,15 @@ cd rescal/config/
 <details>
 <summary>The code below might help</summary>
 
-```c++
+```c
 #include <ctype.h>
 #include <stdint.h>
 
 //? Custom implementation of strcasecmp
 int strcasecmp(const char *str1, const char *str2) {
     while (*str1 && *str2) {
-        const char ch1 = tolower((unsigned char)*str1);
-        const char ch2 = tolower((unsigned char)*str2);
+        const char ch1 = tolower((uint8_t)*str1);
+        const char ch2 = tolower((uint8_t)*str2);
         if (ch1 != ch2) {
             return ch1 - ch2;
         }
@@ -95,7 +95,7 @@ int strcasecmp(const char *str1, const char *str2) {
         str2++;
     }
 
-    return tolower((unsigned char)*str1) - tolower((unsigned char)*str2);
+    return tolower((uint8_t)*str1) - tolower((uint8_t)*str2);
 }
 ```
 </details>
